@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.WindowsRuntime;
 
@@ -37,7 +38,7 @@ namespace WinRT.GraphicsCapture
             StopCapture();
         }
 
-        public void StartCapture(IntPtr hWnd, Device device, Factory factory)
+        public Rect? StartCapture(IntPtr hWnd, Device device, Factory factory)
         {
             #region GraphicsCapturePicker version
 
@@ -56,17 +57,18 @@ namespace WinRT.GraphicsCapture
 
             #region Window Handle version
 
-            var capturePicker = new WindowPicker();
-            var captureHandle = capturePicker.PickCaptureTarget(hWnd);
+            //var capturePicker = new WindowPicker();
+            //var captureHandle = capturePicker.PickCaptureTarget(hWnd);
+            var captureHandle = WindowPicker.FindWindow("MINGW", new Point(0,0));
             if (captureHandle == IntPtr.Zero)
-                return;
+                return null;
 
             _captureItem = CreateItemForWindow(captureHandle);
 
             #endregion
 
             if (_captureItem == null)
-                return;
+                return null;
 
             _captureItem.Closed += CaptureItemOnClosed;
 
@@ -74,7 +76,7 @@ namespace WinRT.GraphicsCapture
             if (hr != 0)
             {
                 StopCapture();
-                return;
+                return null;
             }
 
             var winrtDevice = (IDirect3DDevice) Marshal.GetObjectForIUnknown(pUnknown);
@@ -84,6 +86,10 @@ namespace WinRT.GraphicsCapture
             _captureSession = _captureFramePool.CreateCaptureSession(_captureItem);
             _captureSession.StartCapture();
             IsCapturing = true;
+
+            Win32.Shared.Interop.NativeMethods.GetWindowRect(captureHandle, out Win32.Shared.Interop.NativeMethods.RECT rc);
+            var rect = new Rect(rc.Left, rc.Top, rc.Right - rc.Left, rc.Bottom - rc.Top);
+            return rect;
         }
 
         public Texture2D TryGetNextFrameAsTexture2D(Device device)

@@ -1,5 +1,5 @@
 ﻿using System;
-
+using System.Windows;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 
@@ -11,7 +11,7 @@ namespace Win32.Shared.Interfaces
     {
         bool IsCapturing { get; }
 
-        void StartCapture(IntPtr hWnd, Device device, Factory factory);
+        Rect? StartCapture(IntPtr hWnd, Device device, Factory factory);
 
         Texture2D TryGetNextFrameAsTexture2D(Device device);
 

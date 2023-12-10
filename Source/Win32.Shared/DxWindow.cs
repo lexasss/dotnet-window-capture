@@ -35,6 +35,7 @@ namespace Win32.Shared
         public void Show()
         {
             using var form = new RenderForm(_title);
+            form.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
 
             // create a Device and SwapChain
             var swapChainDescription = new SwapChainDescription
@@ -105,7 +106,15 @@ namespace Win32.Shared
             {
                 // ReSharper disable AccessToDisposedClosure
                 if (!_captureMethod.IsCapturing)
-                    _captureMethod.StartCapture(form.Handle, device, factory);
+                {
+                    var rect = _captureMethod.StartCapture(form.Handle, device, factory);
+                    if (rect != null)
+                    {
+                        var rc = rect.Value;
+                        form.SetBounds((int)rc.X, (int)rc.Y, (int)rc.Width, (int)rc.Height);
+                        isResized = true;
+                    }
+                }
 
                 if (isResized)
                 {
